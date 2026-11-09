@@ -1,0 +1,10 @@
+{
+  "name": "crypto-intelligence-ai",
+  "version": "1.0.0",
+  "description": "Plataforma educativa de análisis de criptomonedas con IA (sin operaciones reales)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node lib/indicators.test.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "better-sqlite3": "^11.3.0", "dotenv": "^16.4.5", "express": "^4.21.0" }
+}

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Intelligence AI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#080c11;--sb:#0c1218;--card:#10171f;--bd:#1b2631;--tx:#e6edf3;--mut:#8493a3;--g:#2ee59d;--r:#ff5c6c;--b:#4c9aff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 'IBM Plex Sans',system-ui,sans-serif;display:flex;min-height:100vh}
+nav{width:216px;background:var(--sb);border-right:1px solid var(--bd);padding:18px 12px;position:sticky;top:0;height:100vh;flex-shrink:0}
+nav h1{font-size:15px;margin:0 0 18px 8px;font-weight:600}nav h1 span{color:var(--g)}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;color:var(--mut);padding:9px 10px;cursor:pointer;font:inherit}
+nav button.on{color:var(--tx);border-left-color:var(--g);background:#111b25}nav button:hover{color:var(--tx)}
+main{flex:1;min-width:0;padding:20px 24px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.num{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.up{color:var(--g)}.dn{color:var(--r)}.mut{color:var(--mut)}
+table{width:100%;border-collapse:collapse}th,td{padding:8px;text-align:right;border-bottom:1px solid var(--bd);vertical-align:top}th{color:var(--mut);font-weight:500}th:first-child,td:first-child{text-align:left}
+button.p,select,input,textarea{background:#14202b;color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font:inherit}
+button.p{background:var(--b);border-color:var(--b);color:#04101f;font-weight:600;cursor:pointer}button.p:disabled{opacity:.5}button.s{background:none;border:1px solid var(--bd);color:var(--tx);border-radius:8px;padding:8px 10px;cursor:pointer;font:inherit}
+:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.badge{padding:1px 8px;border-radius:99px;font-size:12px;background:#12281f;color:var(--g)}.badge.old{background:#3a1218;color:var(--r)}
+#err{background:#3a1218;border:1px solid #6b1f2a;color:#ffc2c9;padding:10px 14px;border-radius:8px;margin-bottom:14px;display:none}
+section{display:none}section.on{display:block}
+h2{font-size:20px;margin:0 0 4px}h3{margin:16px 0 8px;font-size:15px}
+.chart{position:relative;height:340px}
+#chat{height:52vh;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.m{padding:10px 12px;border-radius:10px;max-width:88%;white-space:pre-wrap}.m.u{background:#1c4e9a;align-self:flex-end}.m.a{background:#14202b;border:1px solid var(--bd)}
+.src{font-size:12px;color:var(--mut);margin-top:8px;white-space:normal}
+.tabs button{margin-right:6px}.tabs button.on{border-color:var(--g);color:var(--g)}
+a{color:var(--b)}
+@media(max-width:720px){body{flex-direction:column}nav{width:100%;height:auto;position:static;display:flex;overflow-x:auto;padding:8px}nav h1{display:none}nav button{width:auto;white-space:nowrap;border-left:0;border-bottom:3px solid transparent}nav button.on{border-bottom-color:var(--g)}main{padding:14px}.chart{height:260px}}
+</style></head><body>
+<nav aria-label="Secciones"><h1>Crypto Intelligence <span>AI</span></h1>
+<button data-v="dash" class="on">Panel</button><button data-v="ana">Análisis con IA</button><button data-v="exp">Explorador</button><button data-v="chat">Asistente</button><button data-v="sim">Simulador</button></nav>
+<main>
+<div class="bar"><span id="upd" class="mut"></span><button class="s" id="refresh">Actualizar ahora</button><span class="mut">Contenido educativo; no es asesoría financiera.</span></div>
+<div id="err" role="alert"></div>
+
+<section id="v-dash" class="on"><h2>Panel</h2><p id="trend" class="mut"></p>
+<div id="watch" class="grid"></div>
+<div class="bar" style="margin-top:16px"><select id="cSel" aria-label="Moneda"></select><select id="cDays" aria-label="Rango"><option value="1">24 h</option><option value="7" selected>7 días</option><option value="30">30 días</option><option value="90">90 días</option></select></div>
+<div class="card"><div class="chart"><canvas id="ch"></canvas></div></div></section>
+
+<section id="v-ana"><h2>Análisis con IA</h2><p class="mut">Indicadores calculados con datos históricos reales; la IA los explica en lenguaje sencillo.</p>
+<div class="bar"><select id="aSel" aria-label="Moneda"></select><button class="p" id="aGo">Analizar</button><button class="s" id="aAIbtn" disabled>Explicar con IA</button></div>
+<div id="aOut"></div><div id="aAI" class="m a" style="display:none;max-width:100%;margin-top:12px"></div></section>
+
+<section id="v-exp"><h2>Explorador</h2><p class="mut">Se evalúan las 50 monedas de mayor capitalización. Nada aquí es una recomendación de compra.</p>
+<div class="bar tabs"><button class="s on" data-t="gain">Mayor crecimiento 24h</button><button class="s" data-t="loss">Mayor caída 24h</button><button class="s" data-t="vol">Mayor volumen</button><button class="s" data-t="trend">En tendencia</button><button class="s" data-t="cmp">Comparar</button></div>
+<div id="eOut" class="card" style="overflow-x:auto"></div></section>
+
+<section id="v-chat"><h2>Asistente</h2><p class="mut">Consulta datos de mercado y noticias en cada respuesta. Prueba: «¿Qué está pasando con Bitcoin?» o «¿Qué significa un RSI sobre 70?»</p>
+<div id="chat" class="card"></div>
+<div class="bar"><textarea id="cIn" rows="2" style="flex:1;min-width:200px" placeholder="Escribe tu pregunta…"></textarea><button class="p" id="cSend">Enviar</button></div></section>
+
+<section id="v-sim"><h2>Simulador educativo</h2><p class="mut">Saldo ficticio. Usa precios reales, pero no se ejecuta ninguna operación real.</p>
+<div id="sSum" class="grid"></div>
+<h3>Nueva operación simulada</h3>
+<div class="bar"><select id="tSide"><option value="buy">Comprar</option><option value="sell">Vender</option></select><select id="tCoin"></select><input id="tUsd" type="number" min="1" step="any" placeholder="Monto en USD" style="width:150px"><button class="p" id="tGo">Ejecutar simulación</button><button class="s" id="tReset">Reiniciar saldo</button></div>
+<h3>Posiciones</h3><div class="card" style="overflow-x:auto" id="sHold"></div>
+<h3>Historial</h3><div class="card" style="overflow-x:auto" id="sHist"></div>
+<h3>Comparar estrategias con datos históricos</h3>
+<div class="bar"><select id="bCoin"></select><input id="bAmt" type="number" value="1000" min="10" style="width:110px" aria-label="Monto"><select id="bDays"><option value="30">30 días</option><option value="60">60 días</option><option value="90" selected>90 días</option><option value="120">120 días</option></select><button class="p" id="bGo">Comparar</button></div>
+<div class="card" style="overflow-x:auto" id="bOut"><span class="mut">Elige una moneda y pulsa Comparar.</span></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>n==null?'—':Math.abs(n)>=1?n.toLocaleString('en-US',{maximumFractionDigits:2}):Number(n).toPrecision(3);
+const big=n=>n==null?'—':n>=1e12?(n/1e12).toFixed(2)+'T':n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':fmt(n);
+const pc=n=>n==null?'—':`<span class="num ${n>=0?'up':'dn'}">${n>=0?'+':''}${n.toFixed(2)}%</span>`;
+const hm=t=>new Date(t).toLocaleTimeString();
+const S={m:null,at:0,stale:false,prefs:{watchlist:[]},cmp:new Set(),chat:[],tab:'gain',view:'dash',glob:null};
+const charts={};const mk=(id,cfg)=>{charts[id]?.destroy();charts[id]=new Chart($('#'+id),cfg)};
+const err=m=>{const e=$('#err');e.textContent=m||'';e.style.display=m?'block':'none'};
+async function api(u,o){const r=await fetch(u,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'HTTP '+r.status);return j}
+const post=(u,b)=>api(u,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});
+
+function tick(){const s=Math.round((Date.now()-S.at)/1000),old=!S.at||s>120||S.stale;
+ $('#upd').innerHTML=S.at?`Datos recibidos ${hm(S.at)} (hace ${s}s) <span class="badge ${old?'old':''}">${old?'DESACTUALIZADO':'en vivo'}</span>`:'Sin datos todavía'}
+async function loadMarkets(){
+ try{const j=await api('/api/markets');S.m=j.data;S.at=j.fetchedAt;S.stale=j.stale;
+  err(j.stale?'CoinGecko no responde ('+j.error+'). Se muestran los últimos datos recibidos, que pueden estar desactualizados.':'');
+  fillSelects();render()}
+ catch(e){err('No se pudieron obtener precios: '+e.message+'. Comprueba tu conexión; se reintentará automáticamente.')}
+ tick()}
+function fillSelects(){if(!S.m||$('#cSel').options.length)return;
+ const o=S.m.map(c=>`<option value="${esc(c.id)}">${esc(c.name)} (${esc(c.symbol.toUpperCase())})</option>`).join('');
+ ['cSel','aSel','tCoin','bCoin'].forEach(i=>$('#'+i).innerHTML=o);priceChart()}
+
+function render(){({dash,ana:()=>{},exp,chat:()=>{},sim})[S.view]?.()}
+function dash(){const m=S.m;if(!m)return;
+ const up=m.filter(c=>c.price_change_percentage_24h>0).length,p=up/m.length*100,t=p>=60?['Alcista','up']:p<=40?['Bajista','dn']:['Mixta','mut'];
+ $('#trend').innerHTML=`Tendencia del mercado (top ${m.length}, 24 h): <b class="${t[1]}">${t[0]}</b>, ${up} de ${m.length} monedas suben (${p.toFixed(0)}%)`+(S.glob?`. Capitalización total: $${big(S.glob.total_market_cap.usd)}`:'');
+ $('#watch').innerHTML=S.prefs.watchlist.map(id=>m.find(c=>c.id===id)).filter(Boolean).map(c=>`<div class="card" data-id="${esc(c.id)}" style="cursor:pointer"><div class="mut"><img src="${esc(c.image)}" width="18" height="18" alt="" style="vertical-align:middle"> ${esc(c.name)} ${esc(c.symbol.toUpperCase())}</div><div class="num" style="font-size:22px">$${fmt(c.current_price)}</div>${pc(c.price_change_percentage_24h)}<div class="mut" style="margin-top:6px;font-size:12px">Máx 24h $${fmt(c.high_24h)} · Mín $${fmt(c.low_24h)}<br>Vol $${big(c.total_volume)} · Cap $${big(c.market_cap)}</div></div>`).join('')||'<p class="mut">Tu lista está vacía. Añade monedas con ☆ en el Explorador.</p>'}
+async function priceChart(){const id=$('#cSel').value,d=+$('#cDays').value;if(!id)return;
+ try{const j=await api(`/api/chart/${id}?days=${d}`);
+  const lab=j.prices.map(p=>new Date(p[0]).toLocaleString(undefined,d<=1?{hour:'2-digit',minute:'2-digit'}:{month:'short',day:'numeric'}));
+  mk('ch',{data:{labels:lab,datasets:[{type:'line',label:'Precio USD',data:j.prices.map(p=>p[1]),borderColor:'#2ee59d',pointRadius:0,borderWidth:2,yAxisID:'y',tension:.15},{type:'bar',label:'Volumen',data:j.volumes.map(p=>p[1]),backgroundColor:'rgba(76,154,255,.35)',yAxisID:'v'}]},
+  options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#8493a3'}}},scales:{x:{ticks:{maxTicksLimit:8,color:'#8493a3'},grid:{display:false}},y:{ticks:{color:'#8493a3'},grid:{color:'#1b2631'}},v:{position:'right',display:false,max:Math.max(...j.volumes.map(v=>v[1]))*4}}}})}
+ catch(e){err('Gráfico no disponible: '+e.message)}}
+
+/* Análisis */
+let lastA=null;
+async function analyze(){const id=$('#aSel').value;$('#aOut').innerHTML='<p class="mut">Calculando indicadores…</p>';$('#aAI').style.display='none';
+ try{const [a,n]=await Promise.all([api('/api/analysis/'+id),api('/api/news').catch(()=>null)]);lastA=a;$('#aAIbtn').disabled=false;
+  $('#aOut').innerHTML=`<p class="mut">Fuente: ${esc(a.source)} · recibido ${hm(a.fetchedAt)}${a.stale?' (caché antigua)':''}</p><h3>Tendencia: ${esc(a.trend)} · <span class="num">$${fmt(a.price)}</span></h3>
+  <div class="card" style="margin-bottom:12px"><div class="chart"><canvas id="ac"></canvas></div></div>
+  <div class="grid">${a.findings.map(f=>`<div class="card"><b>${esc(f.name)}</b><div class="num" style="font-size:17px">${esc(f.value)}</div><div class="mut">${esc(f.reading)}</div></div>`).join('')}</div>
+  <p class="mut">${esc(a.disclaimer)}</p>`+(n?`<h3>Noticias recientes (${esc(n.source)}, ${hm(n.fetchedAt)})</h3><div class="card">${n.data.map(i=>`<div><a href="${esc(i.link)}" target="_blank" rel="noopener noreferrer">${esc(i.title)}</a></div>`).join('')}</div>`:'<p class="mut">Noticias no disponibles ahora.</p>');
+  const L=a.series.t.map(t=>new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})),ds=(l,d,c)=>({label:l,data:d,borderColor:c,pointRadius:0,borderWidth:l=='Precio'?2:1.5});
+  mk('ac',{type:'line',data:{labels:L,datasets:[ds('Precio',a.series.p,'#2ee59d'),ds('Media 20d',a.series.s20,'#4c9aff'),ds('Media 50d',a.series.s50,'#f0b429')]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8493a3'}}},scales:{x:{ticks:{maxTicksLimit:8,color:'#8493a3'},grid:{display:false}},y:{ticks:{color:'#8493a3'},grid:{color:'#1b2631'}}}}})}
+ catch(e){$('#aOut').innerHTML='';err(e.message)}}
+async function ask(text,hist=[]){const j=await post('/api/chat',{messages:[...hist,{role:'user',content:text}]});return j}
+const srcLine=j=>`<div class="src">Fuentes: ${j.sources.map(s=>esc(s.name)+(s.stale?' (antigua)':'')+' · '+hm(s.at)).join(' | ')||'ninguna disponible'}<br>Consultado: ${hm(j.queriedAt)}</div>`;
+$('#aAIbtn').onclick=async()=>{const b=$('#aAIbtn'),o=$('#aAI'),name=$('#aSel').selectedOptions[0].textContent;b.disabled=true;o.style.display='block';o.textContent='Analizando…';
+ try{const j=await ask(`Explica paso a paso, en lenguaje sencillo, el análisis técnico actual de ${name}: qué muestra cada indicador, qué datos lo justifican, qué noticias recientes podrían influir y qué es estimación.`);o.textContent=j.text;o.insertAdjacentHTML('beforeend',srcLine(j))}
+ catch(e){o.textContent='';err(e.message)}b.disabled=false};
+
+/* Explorador */
+const risks=c=>{const r=[],w=c.price_change_percentage_7d_in_currency;
+ if(c.market_cap_rank>20)r.push('Capitalización menor: suele implicar menos liquidez y más volatilidad');
+ if(Math.abs(w||0)>15)r.push('Movimiento fuerte en 7 días: volatilidad reciente alta');
+ if(c.ath_change_percentage<-70)r.push(`Muy por debajo de su máximo histórico (${c.ath_change_percentage.toFixed(0)}%)`);
+ if(c.max_supply==null)r.push('Sin suministro máximo definido');
+ if(c.total_volume/c.market_cap>.3)r.push('Volumen alto frente a su capitalización');
+ return r.length?r:['Sin alertas en estos indicadores (no implica ausencia de riesgo)']};
+function exp(){const m=S.m;if(!m)return;const T=S.tab,o=$('#eOut');
+ if(T==='trend'){api('/api/trending').then(j=>{o.innerHTML=`<p class="mut">Más buscadas en CoinGecko (${hm(j.fetchedAt)}). Es popularidad, no calidad ni recomendación.</p><table><tr><th>Moneda</th><th>Ranking cap.</th><th>24h</th></tr>${j.data.map(c=>`<tr><td>${esc(c.name)} ${esc(c.symbol)}</td><td class="num">${c.rank??'—'}</td><td>${pc(c.change24h)}</td></tr>`).join('')}</table>`}).catch(e=>err(e.message));return}
+ if(T==='cmp'){const sel=[...S.cmp].map(id=>m.find(c=>c.id===id)).filter(Boolean);
+  o.innerHTML=sel.length<2?'<p class="mut">Marca con ☑ entre 2 y 3 monedas en las otras pestañas para compararlas.</p>':`<table><tr><th></th>${sel.map(c=>`<th>${esc(c.name)}</th>`).join('')}</tr>`+[['Precio',c=>'$'+fmt(c.current_price)],['Ranking por capitalización',c=>'#'+c.market_cap_rank],['Capitalización',c=>'$'+big(c.market_cap)],['Volumen 24h',c=>'$'+big(c.total_volume)],['Cambio 24h',c=>pc(c.price_change_percentage_24h)],['Cambio 7d',c=>pc(c.price_change_percentage_7d_in_currency)],['Desde su máximo histórico',c=>pc(c.ath_change_percentage)],['Suministro circulante / máximo',c=>`${big(c.circulating_supply)} / ${c.max_supply?big(c.max_supply):'sin límite'}`],['Notas de riesgo',c=>risks(c).map(esc).join('<br>')]].map(([l,f])=>`<tr><td>${l}</td>${sel.map(c=>`<td>${f(c)}</td>`).join('')}</tr>`).join('')+'</table>';return}
+ const key={gain:c=>-c.price_change_percentage_24h,loss:c=>c.price_change_percentage_24h,vol:c=>-c.total_volume}[T];
+ const rows=[...m].sort((a,b)=>key(a)-key(b)).slice(0,10);
+ o.innerHTML=`<table><tr><th>Moneda</th><th>Precio</th><th>24h</th><th>7d</th><th>Volumen 24h</th><th>Capitalización</th><th>Riesgos</th><th></th></tr>${rows.map(c=>`<tr><td>${esc(c.name)} <span class="mut">${esc(c.symbol.toUpperCase())}</span></td><td class="num">$${fmt(c.current_price)}</td><td>${pc(c.price_change_percentage_24h)}</td><td>${pc(c.price_change_percentage_7d_in_currency)}</td><td class="num">$${big(c.total_volume)}</td><td class="num">$${big(c.market_cap)}</td><td style="text-align:left;font-size:12px;max-width:260px" class="mut">${risks(c).map(esc).join('<br>')}</td><td style="white-space:nowrap"><button class="s" data-w="${esc(c.id)}" title="Añadir o quitar del panel" aria-label="Favorito">${S.prefs.watchlist.includes(c.id)?'★':'☆'}</button> <input type="checkbox" data-c="${esc(c.id)}" ${S.cmp.has(c.id)?'checked':''} aria-label="Comparar"></td></tr>`).join('')}</table>`}
+$('#eOut').addEventListener('click',async e=>{const w=e.target.dataset?.w;if(!w)return;const l=S.prefs.watchlist,i=l.indexOf(w);i<0?l.push(w):l.splice(i,1);
+ try{await api('/api/prefs',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({watchlist:l.slice(0,12)})});exp()}catch(x){err(x.message)}});
+$('#eOut').addEventListener('change',e=>{const c=e.target.dataset?.c;if(!c)return;e.target.checked?(S.cmp.size<3?S.cmp.add(c):(e.target.checked=false,err('Máximo 3 monedas a comparar'))):S.cmp.delete(c)});
+$$('[data-t]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;$$('[data-t]').forEach(x=>x.classList.toggle('on',x===b));exp()});
+
+/* Chat */
+function addMsg(role,text,j){const d=document.createElement('div');d.className='m '+(role==='user'?'u':'a');d.textContent=text;if(j)d.insertAdjacentHTML('beforeend',srcLine(j));$('#chat').append(d);$('#chat').scrollTop=1e9;return d}
+async function send(){const t=$('#cIn').value.trim();if(!t)return;$('#cIn').value='';$('#cSend').disabled=true;
+ addMsg('user',t);const w=addMsg('a','Consultando datos actuales…');
+ try{const j=await ask(t,S.chat);S.chat.push({role:'user',content:t},{role:'assistant',content:j.text});w.remove();addMsg('a',j.text,j)}
+ catch(e){w.textContent='No pude responder: '+e.message}$('#cSend').disabled=false}
+$('#cSend').onclick=send;$('#cIn').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}};
+
+/* Simulador */
+async function sim(){try{const j=await api('/api/sim');
+ $('#sSum').innerHTML=[['Valor total','$'+fmt(j.total)],['Saldo disponible','$'+fmt(j.cash)],['Ganancia/pérdida hipotética',pc(j.pnl/j.start*100)+` <span class="num mut">$${fmt(j.pnl)}</span>`]].map(([l,v])=>`<div class="card"><div class="mut">${l}</div><div class="num" style="font-size:20px">${v}</div></div>`).join('');
+ $('#sHold').innerHTML=j.holdings.length?`<table><tr><th>Moneda</th><th>Cantidad</th><th>Costo</th><th>Valor</th><th>G/P</th></tr>${j.holdings.map(h=>`<tr><td>${esc(h.coin)}</td><td class="num">${h.qty.toPrecision(5)}</td><td class="num">$${fmt(h.cost)}</td><td class="num">$${fmt(h.value)}</td><td class="num ${h.pnl>=0?'up':'dn'}">$${fmt(h.pnl)}</td></tr>`).join('')}</table>`:'<span class="mut">Aún no tienes posiciones.</span>';
+ $('#sHist').innerHTML=j.trades.length?`<table><tr><th>Fecha</th><th>Tipo</th><th>Moneda</th><th>Precio</th><th>Monto</th><th>G/P realizada</th></tr>${j.trades.map(t=>`<tr><td>${new Date(t.ts).toLocaleString()}</td><td>${t.side==='buy'?'Compra':'Venta'}</td><td>${esc(t.coin)}</td><td class="num">$${fmt(t.price)}</td><td class="num">$${fmt(t.usd)}</td><td class="num">${t.pnl==null?'—':'$'+fmt(t.pnl)}</td></tr>`).join('')}</table>`:'<span class="mut">Sin operaciones todavía.</span>'}
+ catch(e){err(e.message)}}
+$('#tGo').onclick=async()=>{try{await post('/api/sim/trade',{coin:$('#tCoin').value,side:$('#tSide').value,usd:$('#tUsd').value});err('');$('#tUsd').value='';sim()}catch(e){err(e.message)}};
+$('#tReset').onclick=async()=>{if(confirm('¿Reiniciar saldo virtual y borrar el historial?')){await post('/api/sim/reset',{});sim()}};
+$('#bGo').onclick=async()=>{const o=$('#bOut');o.innerHTML='<span class="mut">Calculando…</span>';
+ try{const j=await api(`/api/sim/backtest?id=${$('#bCoin').value}&days=${$('#bDays').value}&amount=${$('#bAmt').value}`);
+  o.innerHTML=`<table><tr><th>Estrategia</th><th>Valor final</th><th>Retorno</th><th>Mayor caída</th></tr>${j.results.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">$${fmt(r.final)}</td><td>${pc(r.ret)}</td><td>${pc(r.maxDrawdown)}</td></tr>`).join('')}</table><p class="mut">${esc(j.note)} Datos: ${esc(j.source)}, ${hm(j.fetchedAt)}.</p>`}
+ catch(e){o.innerHTML='';err(e.message)}};
+
+/* Navegación y arranque */
+$$('nav button').forEach(b=>b.onclick=()=>{S.view=b.dataset.v;$$('nav button').forEach(x=>x.classList.toggle('on',x===b));$$('section').forEach(s=>s.classList.toggle('on',s.id==='v-'+S.view));render()});
+$('#watch').onclick=e=>{const c=e.target.closest('[data-id]');if(c){$('#cSel').value=c.dataset.id;priceChart()}};
+$('#cSel').onchange=$('#cDays').onchange=priceChart;$('#aGo').onclick=analyze;$('#refresh').onclick=()=>{loadMarkets();priceChart()};
+(async()=>{try{S.prefs=await api('/api/prefs')}catch{}
+ api('/api/global').then(j=>{S.glob=j.data;dash()}).catch(()=>{});
+ await loadMarkets();setInterval(loadMarkets,30e3);setInterval(()=>{if(S.view==='dash')priceChart()},60e3);setInterval(tick,1e3);
+ addMsg('a','Hola. Puedo explicarte el mercado con datos actuales, indicadores y noticias. Es contenido educativo, no una recomendación de inversión.')})();
+</script></body></html>
